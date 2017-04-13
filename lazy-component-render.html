@@ -1,0 +1,101 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`lazy-component-render`
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="lazy-component-render">
+  <template>
+    <slot></slot>
+  </template>
+  <script>
+    class lazyComponentRender extends Polymer.Element {
+      static get is() { return 'lazy-component-render'; }
+      static get properties() {
+        return {
+          components: {
+            type: Object,
+            value: []
+          },
+          _components: {
+            type: Object,
+            value: []
+          },
+          _defOpts: {
+            type: Object,
+            value: {
+              tagName: "",
+              innerHTML: "",
+              properties:{
+                
+              }
+            }
+          },
+          loading:{
+            type: Object,
+            value: false
+          }
+        };
+      }
+      
+      static get observers(){
+        return [
+          "_componentsInited(components)",
+          "_componentsAddedOrRemoved(components.splices)",
+          "__componentAddedOrRemoved(_components.splices)"
+        ]
+      }
+      _componentsInited(components){
+        for(var item of components){
+          var opts = Object.assign({}, this._defOpts, item);
+          var element = document.createElement(item.tagName);
+          element.innerHTML = opts.innerHTML;
+          this.push("_components", element);
+        }
+      }
+      _componentsAddedOrRemoved(value){
+        if(value === undefined){
+          return;
+        }
+        var indexSplice = value.indexSplices[0];
+        if(indexSplice.addedCount > 0){
+          var components = indexSplice.object;
+          var addedElements = [];
+          var addedComponents = components.splice(indexSplice.index, indexSplice.addedCount);
+          for(var item of addedComponents){
+            var opts = Object.assign({}, this._defOpts, item);
+            var element = document.createElement(item.tagName);
+            element.innerHTML = opts.innerHTML;
+            addedElements.push(element);
+          }
+          this.splice("_components", indexSplice.index, 0, ...addedElements);
+        }
+        
+      }
+      
+      __componentAddedOrRemoved(value){
+        if(value === undefined){
+          return;
+        }
+        var indexSplice = value.indexSplices[0];
+        var cacheElement = [];
+        if(indexSplice.addedCount > 0){
+          var objLen = indexSplice.object.length;
+          for(var i = indexSplice.index; i < objLen ; i ++){
+            cacheElement.push(indexSplice.object[i]);
+          }
+        }
+        for(var ele of cacheElement){
+          this.root.appendChild(ele);
+        }
+        
+      }
+      
+    }
+
+    window.customElements.define(lazyComponentRender.is, lazyComponentRender);
+  </script>
+</dom-module>
