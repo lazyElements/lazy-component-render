@@ -30,7 +30,7 @@
               tagName: "",
               innerHTML: "",
               properties:{
-                
+
               }
             }
           },
@@ -40,7 +40,7 @@
           }
         };
       }
-      
+
       static get observers(){
         return [
           "_componentsInited(components)",
@@ -49,10 +49,21 @@
         ]
       }
       _componentsInited(components){
+        this.set("_components", []);
+        this.root.innerHTML ="";
         for(var item of components){
           var opts = Object.assign({}, this._defOpts, item);
           var element = document.createElement(item.tagName);
           element.innerHTML = opts.innerHTML;
+          if(item.properties != undefined) {
+            for(let key in item.properties){
+              let value = item.properties[key];
+              if(typeof(value) == "object"){
+                value = JSON.stringify(value);
+              }
+              element.setAttribute(key, value);
+            }
+          }
           this.push("_components", element);
         }
       }
@@ -69,7 +80,7 @@
             var opts = Object.assign({}, this._defOpts, item);
             var element = document.createElement(item.tagName);
             element.innerHTML = opts.innerHTML;
-            
+
             if(item.properties != undefined) {
               for(let key in item.properties){
                 let value = item.properties[key];
@@ -79,14 +90,14 @@
                 element.setAttribute(key, value);
               }
             }
-            
+
             addedElements.push(element);
           }
           this.splice("_components", indexSplice.index, 0, ...addedElements);
         }
-        
+
       }
-      
+
       __componentAddedOrRemoved(value){
         if(value === undefined){
           return;
@@ -102,9 +113,9 @@
         for(var ele of cacheElement){
           this.root.appendChild(ele);
         }
-        
+
       }
-      
+
     }
 
     window.customElements.define(lazyComponentRender.is, lazyComponentRender);
